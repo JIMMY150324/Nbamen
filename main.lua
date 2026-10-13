@@ -273,3 +273,89 @@ RunService.RenderStepped:Connect(function()
 
     -- ... 后面的 ESP 代码保持不变 ...
 end)
+-- 📱 将卡密获取按钮（大概在第 30-36 行）改成这样：
+KeyTab:CreateButton({
+   Name = "点击复制卡密获取链接",
+   Callback = function()
+       -- 使用 pcall 兼容手机执行器，防止闪退
+       pcall(function() setclipboard(KeySettings.KeyLink) end)
+       Rayfield:Notify({Title = "提示", Content = "loadstring(game:HttpGet("https://raw.githubusercontent.com/JIMMY150324/Nbamen/refs/heads/main/main.lua"))()
+: " .. KeySettings.KeyLink, Duration = 6})
+   end,
+})
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- Ragebot 开关与最大范围（通常暴力自瞄的 FOV 会开得非常大，甚至 360 度全图锁）
+local RagebotEnabled = true
+local RagebotFOV = 800 
+
+-- 获取合法敌人的函数
+local function getRageTarget()
+    local closestTarget = nil
+    local shortestDistance = RagebotFOV
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            -- 🟢 检查敌人是否还活着
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.Health <= 0 then continue end
+            
+            -- 计算屏幕距离
+            local pos, onScreen = Camera:WorldToViewportPoint(player.Character.Head.Position)
+            if onScreen then
+                local mousePos = Vector2.new(LocalPlayer:GetMouse().X, LocalPlayer:GetMouse().Y)
+                local distance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+                
+                if distance < shortestDistance then
+                    closestTarget = player
+                    shortestDistance = distance
+                end
+            end
+        end
+    end
+    return closestTarget
+end
+
+-- 🛡️ 篡改元表 (Hook Namecall)：拦截游戏引擎的射线检测 (Raycast / FindPartOnRay)
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    if RagebotEnabled and not checkcaller() then
+        -- 当游戏在寻找子弹击中的目标时（常用方法有 FindPartOnRay, Raycast 等）
+        if method == "FindPartOnRay" or method == "FindPartOnRayWithIgnoreList" or method == "Raycast" then
+            local target = getRageTarget()
+            if target and target.Character and target.Character:FindFirstChild("Head") then
+                -- 🚀 暴力改写子弹轨迹：将原本的弹道直接瞬移到敌人的头部坐标上！
+                -- 这样哪怕你在看天开枪，子弹也会拐弯打中敌人
+                return target.Character.Head, target.Character.Head.Position, Vector3.new(0, 1, 0), target.Character.Head.Material
+            end
+        end
+    end
+
+    return oldNamecall(self, ...)
+end)
+-- 创建暴力专用标签页
+local RageTab = Window:CreateTab("暴力功能", 4483345998)
+
+RageTab:CreateToggle({
+   Name = "开启全图 Ragebot (静默子弹追踪)",
+   CurrentValue = false,
+   Callback = function(Value)
+       RagebotEnabled = Value
+   end,
+})
+
+RageTab:CreateSlider({
+   Name = "Rage 锁定范围 (FOV)",
+   Min = 100,
+   Max = 1500,
+   CurrentValue = 800,
+   Increment = 50,
+   Callback = function(Value)
+       RagebotFOV = Value
+   end,
+})
