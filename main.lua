@@ -257,3 +257,19 @@ UnlockTab:CreateButton({
        doUnlockAll()
    end,
 })
+-- 📱 将 RenderStepped 里的自瞄触发条件改成这样：
+RunService.RenderStepped:Connect(function()
+    -- ... 前面的 FOV 代码保持不变 ...
+
+    -- 删掉原来的 MouseButton2 判断，改成只要开启自瞄（AimbotEnabled）就自动锁敌
+    if AimbotEnabled then
+        local target = getClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild(AimPart) then
+            local targetPos = target.Character[AimPart].Position
+            local targetCFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, AimSmoothness)
+        end
+    end
+
+    -- ... 后面的 ESP 代码保持不变 ...
+end)
