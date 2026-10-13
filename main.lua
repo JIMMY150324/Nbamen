@@ -6,7 +6,8 @@ local KeySettings = {
 }
 
 -- [[ 2. 初始化 UI 并触发卡密验证 ]]
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()
+local Rayfield = 
+loadstring(game:HttpGet('https://sirius.menu'))()
 local Window = Rayfield:CreateWindow({
    Name = "Noisy's RIVALS Premium Hub",
    LoadingTitle = "正在载入 RIVALS 终极矩阵...",
