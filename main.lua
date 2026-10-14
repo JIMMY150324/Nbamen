@@ -1,22 +1,22 @@
 -- [[ 1. 安全卡密系统配置 ]]
 local KeySettings = {
-    CorrectKey = "NoisyRivals666", 
-    KeyLink = "https://linkvertise.com", 
-    Note = "提示：加入 Noisy 社区即可免费获取今日最新卡密解锁特权！"
+    CorrectKey = "RivalsPremium2026", -- 🔑 在这里设置你的卡密
+    KeyLink = "https://linkvertise.com", -- 🌐 获取卡密的链接
+    Note = "提示：加入官方社区频道即可免费获取今日最新卡密解锁特权！"
 }
 
--- [[ 2. 初始化 UI 并触发卡密验证（修复官方库解析路径） ]]
+-- [[ 2. 初始化 UI 并触发卡密验证 ]]
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()
 local Window = Rayfield:CreateWindow({
-   Name = "Noisy's RIVALS Elite Matrix",
-   LoadingTitle = "正在注入 Noisy 核心矩阵...",
-   LoadingSubtitle = "by Noisy",
+   Name = "RIVALS Open-Source Community Hub",
+   LoadingTitle = "正在注入核心矩阵...",
+   LoadingSubtitle = "by Community Open-Source Project",
    ConfigurationSaving = { Enabled = false },
    KeySystem = true, 
-   Title = "Noisy 安全验证中心",
+   Title = "安全验证中心",
    Subtitle = "验证通过后即可无缝兼容端手双端",
    Note = KeySettings.Note,
-   FileName = "NoisyRivalsPremium",
+   FileName = "RivalsPremiumConfig",
    SaveKey = true, 
    Key = { KeySettings.CorrectKey } 
 })
@@ -41,11 +41,11 @@ local Camera = workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
 -- 作弊控制核心变量
-local AimbotMode = "Legit" -- "Legit" (平滑自瞄) / "Rage" (静默子弹追踪)
+local AimbotMode = "Legit" 
 local AimbotEnabled = false
 local AimSmoothness = 0.1
 local AimPart = "Head"
-local TeamCheck = true     -- 👥 智能阵营过滤开关
+local TeamCheck = true     
 
 local FOVEnabled = true
 local FOVRadius = 100
@@ -69,12 +69,9 @@ local function getBestTarget(maxDistance)
     local shortestDistance = maxDistance
 
     for _, player in pairs(Players:GetPlayers()) do
-        -- 安全过滤：排除自身，确保角色与目标部位存活存在
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(AimPart) then
-            -- 👥 阵营过滤优化
             if TeamCheck and player.Team == LocalPlayer.Team then continue end
             
-            -- 🟢 检查健康值：不锁定已经死掉的玩家，防止鞭尸暴露
             local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
             if humanoid and humanoid.Health <= 0 then continue end
 
@@ -99,16 +96,16 @@ end
 local function applyESP(player)
     if not ESPEnabled or player == LocalPlayer then return end
     if TeamCheck and player.Team == LocalPlayer.Team then 
-        local oldEsp = player.Character and player.Character:FindFirstChild("NoisyESP")
+        local oldEsp = player.Character and player.Character:FindFirstChild("GlobalESP")
         if oldEsp then oldEsp:Destroy() end
         return 
     end
     
     if player.Character then
-        local highlight = player.Character:FindFirstChild("NoisyESP")
+        local highlight = player.Character:FindFirstChild("GlobalESP")
         if not highlight then
             highlight = Instance.new("Highlight")
-            highlight.Name = "NoisyESP"
+            highlight.Name = "GlobalESP"
             highlight.Parent = player.Character
         end
         highlight.FillColor = ESPFillColor
@@ -120,7 +117,7 @@ end
 
 local function removeESP(player)
     if player.Character then
-        local highlight = player.Character:FindFirstChild("NoisyESP")
+        local highlight = player.Character:FindFirstChild("GlobalESP")
         if highlight then highlight:Destroy() end
     end
 end
@@ -131,12 +128,10 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
 
-    -- 如果开启了自瞄，且模式为 Rage 暴力，且是游戏引擎底层调用的射线检测
     if AimbotEnabled and AimbotMode == "Rage" and not checkcaller() then
         if method == "FindPartOnRay" or method == "FindPartOnRayWithIgnoreList" or method == "Raycast" then
             local target = getBestTarget(FOVRadius)
             if target and target.Character and target.Character:FindFirstChild(AimPart) then
-                -- 🚀 强行篡改弹道方向，让子弹100%拐弯打中目标部位
                 return target.Character[AimPart], target.Character[AimPart].Position, Vector3.new(0, 1, 0), target.Character[AimPart].Material
             end
         end
@@ -146,7 +141,7 @@ end)
 
 -- [[ 7. 本地视觉全解锁（异步线程安全模式） ]]
 local function doUnlockAll()
-    task.spawn(function() -- 建立独立异步线程，防止游戏主UI挂起假死
+    task.spawn(function() 
         local paths = {
             LocalPlayer:FindFirstChild("PlayerData"),
             LocalPlayer:FindFirstChild("Inventory"),
@@ -172,7 +167,6 @@ end
 
 -- [[ 8. 后台高帧率实时刷新渲染循环 ]]
 RunService.RenderStepped:Connect(function()
-    -- 更新 FOV 绘制
     if FOVEnabled then
         FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
         FOVCircle.Radius = FOVRadius
@@ -182,9 +176,7 @@ RunService.RenderStepped:Connect(function()
         FOVCircle.Visible = false
     end
 
-    -- 合法自瞄模式（Legit Mode）：通过移动玩家的 Camera 镜头进行平滑锁定
     if AimbotEnabled and AimbotMode == "Legit" then
-        -- 针对手机端全面优化：只要开启且检测到范围内有人，就会自动追踪锁敌
         local target = getBestTarget(FOVRadius)
         if target and target.Character and target.Character:FindFirstChild(AimPart) then
             local targetPos = target.Character[AimPart].Position
@@ -193,21 +185,19 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    -- 刷新房间内所有人的 ESP 状态
     for _, player in pairs(Players:GetPlayers()) do
         if ESPEnabled then applyESP(player) else removeESP(player) end
     end
 end)
 
--- 动态监听新复活或新加房的玩家
 Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
+    player.Characterget:Connect(function()
         task.wait(0.5)
         if ESPEnabled then applyESP(player) end
     end)
 end)
 
--- [[ 9. 构筑多功能 Elite 控制面板 界面 ]]
+-- [[ 9. 构筑多功能控制面板界面 ]]
 local AimTab = Window:CreateTab("智能自瞄", 4483345998)
 local EspTab = Window:CreateTab("视觉透视", 4483345998)
 local UtilityTab = Window:CreateTab("全物品解锁", 4483345998)
@@ -291,4 +281,4 @@ UtilityTab:CreateButton({
    Callback = function() doUnlockAll() end,
 })
 
-Rayfield:Notify({Title = "矩阵加载成功", Content = "Noisy's Rivals 2026 Elite Edition 运行顺畅！", Duration = 5})
+Rayfield:Notify({Title = "核心矩阵加载成功", Content = "RIVALS 社区纯净开源版已就绪！", Duration = 5})
