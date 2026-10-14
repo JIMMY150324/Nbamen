@@ -1,6 +1,6 @@
 -- [[ 1. 安全卡密系统配置 ]]
 local KeySettings = {
-    CorrectKey = "RivalsPremium2026", -- 🔑 在这里设置你的卡密
+    CorrectKey = "Rivals", -- 🔑 在这里设置你的卡密
     KeyLink = "https://linkvertise.com", -- 🌐 获取卡密的链接
     Note = "提示：加入官方社区频道即可免费获取今日最新卡密解锁特权！"
 }
