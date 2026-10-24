@@ -1,6 +1,6 @@
 -- [[ 1. 卡密与核心依赖配置 ]]
 local KeySettings = { CorrectKey = "RivalsPremium2026", KeyLink = "https://linkvertise.com", Note = "移动端专用纯净验证版" }
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()/rayfield
 local Window = Rayfield:CreateWindow({
    Name = "RIVALS Delta Mobile Hub", LoadingTitle = "正在载入Delta优化矩阵...", LoadingSubtitle = "Mobile Stable",
    ConfigurationSaving = { Enabled = false }, KeySystem = true, Title = "安全验证中心", Subtitle = "移动端专用稳定接口",
