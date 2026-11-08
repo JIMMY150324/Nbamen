@@ -1,214 +1,147 @@
--- ==========================================
--- Delta 手机端「全能通解」适配菜单
--- ==========================================
+local P, LP, Cam, RS, UIS, TS = game:GetService("Players"), game:GetService("Players").LocalPlayer, workspace.CurrentCamera, game:GetService("RunService"), game:GetService("UserInputService"), game:GetService("TweenService")
+local PG = LP:WaitForChild("PlayerGui")
+if PG:FindFirstChild("UEMenu") then PG.UEMenu:Destroy() end
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+local Cfg = {Ragebot = false, AutoFire = false, Teleport = false, DoubleTap = false, AntiAim = false, Rapid = false, Esp = false, Speed = 16, InfJump = false, Fly = false, Fov = 200, ShowFov = false}
+local Str = 'loadstring(game:HttpGet("https://githubusercontent.com"))()'
 
--- 清理可能残留的旧菜单
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-if PlayerGui:FindFirstChild("DeltaMegaMenu") then PlayerGui.DeltaMegaMenu:Destroy() end
+local Gui = Instance.new("ScreenGui", PG) Gui.Name = "UEMenu" Gui.ResetOnSpawn = false
+local Frame = Instance.new("Frame", Gui) Frame.Size = UDim2.new(0, 380, 0, 260) Frame.Position = UDim2.new(0.2, 0, 0.25, 0) Frame.BackgroundColor3 = Color3.fromRGB(13, 0, 0) Frame.Active = true Frame.Draggable = true Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 8)
+local Bar = Instance.new("Frame", Frame) Bar.Size = UDim2.new(1, 0, 0, 3) Bar.BackgroundColor3 = Color3.fromRGB(255, 0, 51) Instance.new("UICorner", Bar).CornerRadius = UDim.new(0, 8)
+local Title = Instance.new("TextLabel", Frame) Title.Size = UDim2.new(1, -20, 0, 35) Title.Position = UDim2.new(0, 10, 0, 3) Title.Text = "☠️ UNNAMED ENHANCEMENTS // RAGE CONFIG ☠️" Title.TextColor3 = Color3.fromRGB(255, 255, 255) Title.BackgroundTransparency = 1 Title.Font = Enum.Font.Code Title.TextSize = 13 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- 功能配置状态
-local Config = {
-    Speed = 16,
-    JumpPower = 50,
-    InfJump = false,
-    Aimbot = false,
-    Esp = false
-}
+local Nav = Instance.new("Frame", Frame) Nav.Size = UDim2.new(0, 95, 1, -45) Nav.Position = UDim2.new(0, 10, 0, 38) Nav.BackgroundColor3 = Color3.fromRGB(25, 5, 5) Instance.new("UICorner", Nav).CornerRadius = UDim.new(0, 6)
+local NavL = Instance.new("UIListLayout", Nav) NavL.Padding = UDim.new(0, 4) NavL.HorizontalAlignment = Enum.HorizontalAlignment.Center
+local Container = Instance.new("Frame", Frame) Container.Size = UDim2.new(1, -125, 1, -45) Container.Position = UDim2.new(0, 115, 0, 38) Container.BackgroundTransparency = 1
 
--- 核心 UI 容器
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DeltaMegaMenu"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = PlayerGui
+local Pages = {}
+local function makePage(name)
+    local scr = Instance.new("ScrollingFrame", Container) scr.Size = UDim2.new(1, 0, 1, 0) scr.BackgroundTransparency = 1 scr.BorderSizePixel = 0 scr.ScrollBarThickness = 2 scr.CanvasSize = UDim2.new(0, 0, 0, 350) scr.Visible = false
+    Instance.new("UIListLayout", scr).Padding = UDim.new(0, 6)
+    Pages[name] = scr
+    local btn = Instance.new("TextButton", Nav) btn.Size = UDim2.new(1, -6, 0, 26) btn.BackgroundColor3 = Color3.fromRGB(40, 10, 10) btn.TextColor3 = Color3.fromRGB(200, 150, 150) btn.Text = name:upper() btn.Font = Enum.Font.Code btn.TextSize = 9 Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    btn.MouseButton1Click:Connect(function() for _, p in pairs(Pages) do p.Visible = false end scr.Visible = true end)
+end
+makePage("Ragebot") makePage("Visuals") makePage("Hacks") Pages["Ragebot"].Visible = true
 
--- 主背景板
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 240, 0, 320)
-MainFrame.Position = UDim2.new(0.15, 0, 0.25, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
-
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = MainFrame
-
--- 霓虹顶部装饰条
-local GlowLine = Instance.new("Frame")
-GlowLine.Size = UDim2.new(1, 0, 0, 4)
-GlowLine.BackgroundColor3 = Color3.fromRGB(0, 255, 204)
-GlowLine.BorderSizePixel = 0
-GlowLine.Parent = MainFrame
-local LineCorner = Instance.new("UICorner")
-LineCorner.CornerRadius = UDim.new(0, 12)
-LineCorner.Parent = GlowLine
-
--- 标题
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Position = UDim2.new(0, 0, 0, 4)
-Title.Text = "⚡ DELTA ALL-IN-ONE ⚡"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 16
-Title.Parent = MainFrame
-
--- 滚动区域（防止功能太多装不下）
-local Scroll = Instance.new("ScrollingFrame")
-Scroll.Size = UDim2.new(1, -20, 1, -60)
-Scroll.Position = UDim2.new(0, 10, 0, 45)
-Scroll.BackgroundTransparency = 1
-Scroll.BorderSizePixel = 0
-Scroll.ScrollBarThickness = 4
-Scroll.CanvasSize = UDim2.new(0, 0, 0, 360)
-Scroll.Parent = MainFrame
-
-local ListLayout = Instance.new("UIListLayout")
-ListLayout.Padding = UDim.new(0, 8)
-ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-ListLayout.Parent = Scroll
-
--- 通用功能按钮生成器
-local function addToggle(text, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -10, 0, 42)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.Text = text .. " [关]"
-    btn.Font = Enum.Font.SourceSans
-    btn.TextSize = 15
-    btn.Parent = Scroll
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = btn
-
+local function addToggle(page, txt, cb)
+    local f = Instance.new("Frame", Pages[page]) f.Size = UDim2.new(1, -6, 0, 38) f.BackgroundColor3 = Color3.fromRGB(35, 12, 12) Instance.new("UICorner", f).CornerRadius = UDim.new(0, 4)
+    local l = Instance.new("TextLabel", f) l.Size = UDim2.new(0.6, 0, 1, 0) l.Position = UDim2.new(0, 10, 0, 0) l.Text = txt l.TextColor3 = Color3.fromRGB(230, 180, 180) l.Font = Enum.Font.Code l.TextSize = 11 l.BackgroundTransparency = 1 l.TextXAlignment = Enum.TextXAlignment.Left
+    local bg = Instance.new("TextButton", f) bg.Size = UDim2.new(0, 42, 0, 20) bg.Position = UDim2.new(1, -52, 0, 9) bg.BackgroundColor3 = Color3.fromRGB(60, 20, 20) bg.Text = "" Instance.new("UICorner", bg).CornerRadius = UDim.new(1, 0)
+    local s = Instance.new("Frame", bg) s.Size = UDim2.new(0, 16, 0, 16) s.Position = UDim2.new(0, 2, 0, 2) s.BackgroundColor3 = Color3.fromRGB(255, 255, 255) Instance.new("UICorner", s).CornerRadius = UDim.new(1, 0)
     local state = false
-    btn.MouseButton1Click:Connect(function()
+    bg.MouseButton1Click:Connect(function()
         state = not state
-        btn.Text = state and text .. " [开]" or text .. " [关]"
-        btn.BackgroundColor3 = state and Color3.fromRGB(0, 180, 130) or Color3.fromRGB(45, 45, 55)
-        btn.TextColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
-        callback(state)
+        TS:Create(s, TweenInfo.new(0.15), {Position = state and UDim2.new(0, 24, 0, 2) or UDim2.new(0, 2, 0, 2)}):Play()
+        TS:Create(bg, TweenInfo.new(0.15), {BackgroundColor3 = state and Color3.fromRGB(255, 0, 51) or Color3.fromRGB(60, 20, 20)}):Play()
+        cb(state)
     end)
 end
 
--- ==========================================
--- 功能核心逻辑实现
--- ==========================================
-
--- 1. 速度与高跳维持
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.WalkSpeed = Config.Speed
-            LocalPlayer.Character.Humanoid.JumpPower = Config.JumpPower
+local function getEnemy()
+    local target, near = nil, math.huge
+    local pList = P:GetPlayers()
+    for i = 1, #pList do
+        local p = pList[i]
+        if p ~= LP and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 and (p.Team ~= LP.Team or tostring(p.Team) == "Neutral") then
+            local pos, vis = Cam:WorldToViewportPoint(p.Character.Head.Position)
+            local m = UIS:GetMouseLocation()
+            local d = (Vector2.new(pos.X, pos.Y) - m).Magnitude
+            if d < near then target = p near = d end
         end
-    end)
-end)
+    end
+    return target
+end
 
--- 2. 无限跳跃
-UserInputService.JumpRequest:Connect(function()
-    if Config.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+local function shoot()
+    local vu = game:GetService("VirtualUser")
+    vu:CaptureController()
+    vu:ClickButton1(Vector2.new(0,0))
+end
+
+RS.RenderStepped:Connect(function()
+    if not Cfg.Ragebot then return end
+    local t = getEnemy()
+    if t and t.Character and t.Character:FindFirstChild("Head") and t.Character:FindFirstChild("HumanoidRootPart") then
+        local head = t.Character.Head
+        
+        -- ACTION 1: 暴力强锁视角
+        Cam.CFrame = CFrame.new(Cam.CFrame.Position, head.Position)
+        
+        -- ACTION 2: 全图瞬移追杀 (Teleport Kill)
+        if Cfg.Teleport and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+            LP.Character.HumanoidRootPart.CFrame = t.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3) -- 瞬间移动到敌人背后3格
+        end
+        
+        -- ACTION 3: 极速自开火模拟
+        if Cfg.AutoFire then
+            task.spawn(shoot)
+            if Cfg.DoubleTap then task.spawn(shoot) end -- ACTION 4: Double Tap (双发连弹)
+        end
     end
 end)
 
--- 3. 自瞄 (自动锁定最近敌人)
-local function getClosestPlayer()
-    local closest = nil
-    local maxDist = 300 -- 屏幕像素锁定范围
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            local pos, onScreen = Camera:WorldToViewportPoint(p.Character.Head.Position)
-            if onScreen then
-                local mouse = UserInputService:GetMouseLocation()
-                local dist = (Vector2.new(pos.X, pos.Y) - mouse).Magnitude
-                if dist < maxDist then
-                    closest = p
-                    maxDist = dist
-                end
+RS.Heartbeat:Connect(function()
+    pcall(function()
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") and LP.Character:FindFirstChild("HumanoidRootPart") then
+            local root, hum = LP.Character.HumanoidRootPart, LP.Character.Humanoid
+            hum.WalkSpeed = Cfg.Speed
+            
+            -- ACTION 5: Anti-Aim 反自瞄机制 (身法头部疯狂抽搐，让其他外挂玩家无法锁你的头)
+            if Cfg.AntiAim then
+                root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(math.random(1, 360)), 0)
+            end
+            
+            if Cfg.Fly then
+                root.Velocity = Vector3.new(root.Velocity.X, 0, root.Velocity.Z)
+                if UIS:IsKeyDown(Enum.KeyCode.Space) then root.Velocity = Vector3.new(root.Velocity.X, 40, root.Velocity.Z) end
+            end
+            
+            -- ACTION 6: 武器超频覆写 (无后坐力 + 无散射 + 极限无限高射速)
+            local w = LP.Character:FindFirstChildOfClass("Tool")
+            if w and w:FindFirstChild("Configuration") then
+                local c = w.Configuration
+                if Cfg.NoRecoil and c:FindFirstChild("Recoil") then c.Recoil.Value = 0 end
+                if Cfg.NoSpread and c:FindFirstChild("Spread") then c.Spread.Value = 0 end
+                if Cfg.Rapid and c:FindFirstChild("FireRate") then c.FireRate.Value = 0.01 end -- 射速超频
             end
         end
-    end
-    return closest
+    end)
+end)
+
+UIS.JumpRequest:Connect(function() if Cfg.InfJump and LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then LP.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping) end end)
+
+local function doEsp(p)
+    if p == LP then return end
+    local function set(c) task.wait(0.3) if c:FindFirstChild("UE_Box") then c.UE_Box:Destroy() end local h = Instance.new("Highlight", c) h.Name = "UE_Box" h.FillColor = Color3.fromRGB(255, 0, 51) h.FillTransparency = 0.5 h.Enabled = Cfg.Esp end
+    if p.Character then set(p.Character) end p.CharacterAdded:Connect(set)
 end
+for _, p in ipairs(P:GetPlayers()) do doEsp(p) end P.PlayerAdded:Connect(doEsp)
 
-RunService.RenderStepped:Connect(function()
-    if Config.Aimbot then
-        local target = getClosestPlayer()
-        if target and target.Character and target.Character:FindFirstChild("Head") then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
-        end
-    end
+-- RAGEBOT PAGE (主攻暴力动作模块)
+addToggle("Ragebot", "Ragebot Master (总开关)", function(s) Cfg.Ragebot = s end)
+addToggle("Ragebot", "Auto Fire (自动瞬间开火)", function(s) Cfg.AutoFire = s end)
+addToggle("Ragebot", "Double Tap (双发双倍伤害)", function(s) Cfg.DoubleTap = s end)
+addToggle("Ragebot", "Teleport Kill (瞬移全图追杀)", function(s) Cfg.Teleport = s end)
+addToggle("Ragebot", "Anti-Aim (反头部追踪假身)", function(s) Cfg.AntiAim = s end)
+
+-- VISUALS PAGE
+addToggle("Visuals", "Rage Red Chams ESP", function(s) Cfg.Esp = s for _, p in ipairs(P:GetPlayers()) do if p.Character and p.Character:FindFirstChild("UE_Box") then p.Character.UE_Box.Enabled = s end end end)
+
+-- HACKS PAGE (移动与武器超频)
+addToggle("Hacks", "Rapid Fire (无限超频射速)", function(s) Cfg.Rapid = s end)
+addToggle("Hacks", "No Recoil & Spread (稳定弹道)", function(s) Cfg.NoRecoil = s Cfg.NoSpread = s end)
+addToggle("Hacks", "Speed Hack (60)", function(s) Cfg.Speed = s and 60 or 16 end)
+addToggle("Hacks", "Fly / Anti-Gravity", function(s) Cfg.Fly = s end)
+addToggle("Hacks", "Infinite Jump", function(s) Cfg.InfJump = s end)
+
+local Txt = Instance.new("TextBox", Nav) Txt.Size = UDim2.new(1, -6, 0, 30) Txt.BackgroundColor3 = Color3.fromRGB(25, 27, 34) Txt.TextColor3 = Color3.fromRGB(130, 140, 150) Txt.Text = Str Txt.ClearTextOnFocus = false Txt.TextEditable = false Txt.Visible = false Txt.Font = Enum.Font.Code Txt.TextSize = 9 Instance.new("UICorner", Txt).CornerRadius = UDim.new(0, 4)
+local Cpy = Instance.new("TextButton", Nav) Cpy.Size = UDim2.new(1, -6, 0, 26) Cpy.BackgroundColor3 = Color3.fromRGB(0, 120, 200) Cpy.TextColor3 = Color3.fromRGB(255, 255, 255) Cpy.Text = "COPY LINK" Cpy.Font = Enum.Font.Code Cpy.TextSize = 10 Instance.new("UICorner", Cpy).CornerRadius = UDim.new(0, 4)
+Cpy.MouseButton1Click:Connect(function()
+    local fn = setclipboard or toclipboard or (Clipboard and Clipboard.set)
+    local ok = pcall(function() if fn then fn(Str) end end)
+请谨慎使用此类代码。
+if ok and fn then Cpy.Text = "COPIED!" Cpy.BackgroundColor3 = Color3.fromRGB(46, 204, 113) task.wait(1) Cpy.Text = "COPY LINK" Cpy.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+else Cpy.Text = "LONG PRESS" Cpy.BackgroundColor3 = Color3.fromRGB(230, 126, 34) Txt.Visible = true Txt:CaptureFocus() end
 end)
-
--- 4. 手机透视 (高光 Highlight 模式，比画方框更稳且不卡顿)
-local function applyESP(p)
-    if p == LocalPlayer then return end
-    local function setup(char)
-        task.wait(0.5)
-        if char:FindFirstChild("EspGlow") then char.EspGlow:Destroy() end
-        local hl = Instance.new("Highlight")
-        hl.Name = "EspGlow"
-        hl.FillColor = Color3.fromRGB(255, 50, 50)
-        hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-        hl.FillTransparency = 0.5
-        hl.Enabled = Config.Esp
-        hl.Parent = char
-    end
-    if p.Character then setup(p.Character) end
-    p.CharacterAdded:Connect(setup)
-end
-
-for _, p in ipairs(Players:GetPlayers()) do applyESP(p) end
-Players.PlayerAdded:Connect(applyESP)
-
--- ==========================================
--- 绑定功能到按钮
--- ==========================================
-
-addToggle("人物急速挂", function(state)
-    Config.Speed = state and 65 or 16
-end)
-
-addToggle("超级高跳", function(state)
-    Config.JumpPower = state and 120 or 50
-end)
-
-addToggle("无线连跳 (InfJump)", function(state)
-    Config.InfJump = state
-end)
-
-addToggle("全自动自瞄 (锁头)", function(state)
-    Config.Aimbot = state
-end)
-
-addToggle("全局玩家透视 (透视)", function(state)
-    Config.Esp = state
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Character and p.Character:FindFirstChild("EspGlow") then
-            p.Character.EspGlow.Enabled = state
-        end
-    end
-end)
-
--- 关闭菜单按钮
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(1, -10, 0, 35)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.Text = "安全销毁菜单"
-CloseBtn.Font = Enum.Font.SourceSansBold
-CloseBtn.TextSize = 14
-CloseBtn.Parent = Scroll
-CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+local Cls = Instance.new("TextButton", Nav) Cls.Size = UDim2.new(1, -6, 0, 26) Cls.BackgroundColor3 = Color3.fromRGB(40, 20, 20) Cls.TextColor3 = Color3.fromRGB(255, 100, 100) Cls.Text = "CLOSE" Cls.Font = Enum.Font.Code Cls.TextSize = 10 Instance.new("UICorner", Cls).CornerRadius = UDim.new(0, 4) Cls.MouseButton1Click:Connect(function() Gui:Destroy() end
