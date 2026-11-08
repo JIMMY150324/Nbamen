@@ -264,3 +264,78 @@ UIS.InputBegan:Connect(function(i, gp)
         main.Visible = Cfg.MenuOpen
     end
 end)
+-- 清理旧的
+if game.CoreGui:FindFirstChild("SimpleMenu") then game.CoreGui.SimpleMenu:Destroy() end
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- 创建最基础的屏幕 UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SimpleMenu"
+ScreenGui.Parent = game.CoreGui -- 挂载到 CoreGui 提高兼容性
+
+-- 主底板
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 200, 0, 250)
+MainFrame.Position = UDim2.new(0.1, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- 标题
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "功能菜单 (可拖动)"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+Title.Parent = MainFrame
+
+-- 速度修改按钮
+local SpeedBtn = Instance.new("TextButton")
+SpeedBtn.Size = UDim2.new(0, 180, 0, 40)
+SpeedBtn.Position = UDim2.new(0, 10, 0, 60)
+SpeedBtn.Text = "急速奔跑: 关"
+SpeedBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBtn.Parent = MainFrame
+
+local speedOn = false
+SpeedBtn.MouseButton1Click:Connect(function()
+    speedOn = not speedOn
+    SpeedBtn.Text = speedOn and "急速奔跑: 开" or "急速奔跑: 关"
+    SpeedBtn.BackgroundColor3 = speedOn and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(80, 80, 80)
+    
+    task.spawn(function()
+        while speedOn and task.wait() do
+            pcall(function()
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                    LocalPlayer.Character.Humanoid.WalkSpeed = speedOn and 60 or 16
+                end
+            end)
+        end
+    end)
+end)
+
+-- 无限跳跃按钮
+local JumpBtn = Instance.new("TextButton")
+JumpBtn.Size = UDim2.new(0, 180, 0, 40)
+JumpBtn.Position = UDim2.new(0, 10, 0, 120)
+JumpBtn.Text = "无限跳跃: 关"
+JumpBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpBtn.Parent = MainFrame
+
+local jumpOn = false
+JumpBtn.MouseButton1Click:Connect(function()
+    jumpOn = not jumpOn
+    JumpBtn.Text = jumpOn and "无限跳跃: 开" or "无限跳跃: 关"
+    JumpBtn.BackgroundColor3 = jumpOn and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(80, 80, 80)
+end)
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if jumpOn and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
